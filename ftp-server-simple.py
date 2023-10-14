@@ -57,10 +57,6 @@ def main ():
                     con.send(file_data)
                     file_data = f.read(BUFFER_SIZE)
             print(colors.OKGREEN + "[+] File sent successfully." + colors.ENDC)
-        
-
-        #print(data)
-        #con.send(str("Received").encode())
-
+            
 if __name__ == "__main__":
     main()
