@@ -49,13 +49,17 @@ def main ():
     while True:        
         data = con.recv(1024).decode()
         if data == "LIST":
-             con.send(str(os.listdir()).encode())
+             con.send(str(os.listdir("./files")).encode())
+
         if data == "GET":
-            with open("./test.txt", "rb") as f:
+            with open("files/test.txt", "rb") as f:
                 file_data = f.read(BUFFER_SIZE)
+                print(file_data)
                 while file_data:
                     con.send(file_data)
                     file_data = f.read(BUFFER_SIZE)
+                f.close()
+
             print(colors.OKGREEN + "[+] File sent successfully." + colors.ENDC)
             
 if __name__ == "__main__":

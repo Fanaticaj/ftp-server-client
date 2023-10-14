@@ -39,9 +39,11 @@ def main ():
         if user_input == "GET":
             with open("received_test.txt", "wb") as f:  # "received_test.txt" is the name of the file where you'll save the received data
                 data = s.recv(BUFFER_SIZE)
+                print(data)
                 while data:
                     f.write(data)
                     data = s.recv(BUFFER_SIZE)
+                f.close()
             print(colors.OKGREEN + "[+] File received successfully." + colors.ENDC)
         else:
             data = s.recv(1024).decode()
