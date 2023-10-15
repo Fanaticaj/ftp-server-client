@@ -7,7 +7,7 @@ import time
 CONTROLLED_PORT = 21
 DATA_PORT = 20
 FAIL = -1
-BUFFER_SIZE = 4096 
+BUFFER_SIZE = 1024 
 
 # Makes my strings pretty
 class colors:
@@ -55,18 +55,17 @@ def main ():
             s_data.listen()
             print(colors.OKGREEN + "[+] Data Socket awaiting client connections..." + colors.ENDC)
             
-            #while len(clients2) != 1:
             con_data, c_addr_data = s_data.accept()
             clients2.append(con_data)
             print(colors.OKBLUE + "[+] Client connected to data port, total Clients: " + colors.ENDC + str(len(clients2)))
 
             with open("files/test.txt", "rb") as f:
                 file_data = f.read(BUFFER_SIZE)
-                print(file_data)
                 while file_data:
                     con_data.send(file_data)
                     file_data = f.read(BUFFER_SIZE)
-                f.close()
+            con_data.close()  # Close the connection socket after sending data
+            s_data.close()    # Close the server socket
 
             print(colors.OKGREEN + "[+] File sent successfully." + colors.ENDC)
             

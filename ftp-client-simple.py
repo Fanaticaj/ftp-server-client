@@ -7,7 +7,7 @@ import time
 CONTROLLED_PORT = 21
 DATA_PORT = 20
 FAIL = -1
-BUFFER_SIZE = 4096 
+BUFFER_SIZE = 1024 
 
 # Makes my strings pretty
 class colors:
@@ -44,15 +44,16 @@ def main ():
             s_data.connect((address, DATA_PORT))
             print(colors.OKGREEN + "[+] Data port connected to server successfully..." + colors.ENDC)
 
-            with open("received_test.txt", "wb") as f:  # "received_test.txt" is the name of the file where you'll save the received data
-                data = s_data.recv(BUFFER_SIZE)
-                print(data)
-                while data:
-                    f.write(data)
+            with open("received_test.txt", "wb") as f:
+                while True:
                     data = s_data.recv(BUFFER_SIZE)
-                f.close()
+                    if not data:
+                        break
+                f.write(data)
+
             print(colors.OKGREEN + "[+] File received successfully." + colors.ENDC)
             s_data.close()
+        
         else:
             data = s.recv(1024).decode()
             print(data)
