@@ -1,6 +1,7 @@
 import socket
 import multiprocessing as mp
 import os
+import time
 
 # Constants
 CONTROLLED_PORT = 21
@@ -29,22 +30,29 @@ def main ():
 
     s.connect((address, CONTROLLED_PORT))
     print(colors.OKGREEN + "[+] Connected to server successfully..." + colors.ENDC)
-    #s.send(str((address, CONTROLLED_PORT)).encode())
 
     print(colors.OKBLUE + "Please enter a command..." + colors.ENDC)
     while True:
         user_input = input()
         s.send(str(user_input).encode())
+        time.sleep(1)
 
         if user_input == "GET":
+
+            s_data = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            print(colors.OKGREEN + "[+] Data Socket created succesfully." + colors.ENDC)
+            s_data.connect((address, DATA_PORT))
+            print(colors.OKGREEN + "[+] Data port connected to server successfully..." + colors.ENDC)
+
             with open("received_test.txt", "wb") as f:  # "received_test.txt" is the name of the file where you'll save the received data
-                data = s.recv(BUFFER_SIZE)
+                data = s_data.recv(BUFFER_SIZE)
                 print(data)
                 while data:
                     f.write(data)
-                    data = s.recv(BUFFER_SIZE)
+                    data = s_data.recv(BUFFER_SIZE)
                 f.close()
             print(colors.OKGREEN + "[+] File received successfully." + colors.ENDC)
+            s_data.close()
         else:
             data = s.recv(1024).decode()
             print(data)

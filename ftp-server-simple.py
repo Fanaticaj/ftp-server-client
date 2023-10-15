@@ -19,19 +19,15 @@ class colors:
     FAIL = '\033[91m'
     ENDC = '\033[0m'
     BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-
-def command_listener(s_controlled, clients):
-    
-    print()
-   # while True:
-            
+    UNDERLINE = '\033[4m'         
 
 def main ():
     
     address = '127.0.0.1'
     tuple_address_port = (address, CONTROLLED_PORT)
+    tuple_data_port = (address, DATA_PORT)
     clients = []
+    clients2 = []
     
 
     s_controlled = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -52,11 +48,23 @@ def main ():
              con.send(str(os.listdir("./files")).encode())
 
         if data == "GET":
+            s_data = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            print(colors.OKGREEN + "[+] Data Socket created succesfully." + colors.ENDC)
+            s_data.bind(tuple_data_port)
+            print(colors.OKGREEN + "[+] Data Socket bound succesfully." + colors.ENDC)
+            s_data.listen()
+            print(colors.OKGREEN + "[+] Data Socket awaiting client connections..." + colors.ENDC)
+            
+            #while len(clients2) != 1:
+            con_data, c_addr_data = s_data.accept()
+            clients2.append(con_data)
+            print(colors.OKBLUE + "[+] Client connected to data port, total Clients: " + colors.ENDC + str(len(clients2)))
+
             with open("files/test.txt", "rb") as f:
                 file_data = f.read(BUFFER_SIZE)
                 print(file_data)
                 while file_data:
-                    con.send(file_data)
+                    con_data.send(file_data)
                     file_data = f.read(BUFFER_SIZE)
                 f.close()
 
