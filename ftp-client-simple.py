@@ -43,8 +43,8 @@ def main ():
             print(colors.OKGREEN + "[+] Data Socket created succesfully." + colors.ENDC)
             s_data.connect((address, DATA_PORT))
             print(colors.OKGREEN + "[+] Data port connected to server successfully..." + colors.ENDC)
-
-            with open("received_test.txt", "wb") as f:
+            print(data)
+            with open("./client-files/received_test.txt", "wb") as f:
                 while True:
                     data = s_data.recv(BUFFER_SIZE)
                     if not data:
