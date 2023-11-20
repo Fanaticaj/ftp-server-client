@@ -3,8 +3,13 @@
 
 # Simple FTP Server and Client
 
+## Project Members
+Anthony Grippi - 
+Ethan Jones - ejonest@csu.fullerton.edu
+David Nguyen - dnguyen271@csu.fullerton.edu
+
 ## Overview
-This package contains a simple FTP server and client implementation written in Python, along with a batch script to run both the server and the client on a Windows system.
+This package contains a simple FTP server and client implementation written in **Python**, along with a batch script to run both the server and the client on a Windows system.
 
 ## Files Description
 1. **ftp-server-simple.py** - This Python script sets up a basic FTP server. It listens for client connections and can handle commands such as 'LS' (to list files in the server directory) and 'GET' (to send a file to the client). The script uses socket programming and is designed to run on a single client.
