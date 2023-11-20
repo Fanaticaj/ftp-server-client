@@ -4,7 +4,7 @@
 # Simple FTP Server and Client
 
 ## Project Members
-Anthony Grippi -  
+Anthony Grippi - agrippi@csu.fullerton.edu  
 Ethan Jones - ejonest@csu.fullerton.edu  
 David Nguyen - dnguyen271@csu.fullerton.edu  
 
