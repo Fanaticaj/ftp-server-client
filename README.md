@@ -4,9 +4,9 @@
 # Simple FTP Server and Client
 
 ## Project Members
-Anthony Grippi - 
-Ethan Jones - ejonest@csu.fullerton.edu
-David Nguyen - dnguyen271@csu.fullerton.edu
+Anthony Grippi -  
+Ethan Jones - ejonest@csu.fullerton.edu  
+David Nguyen - dnguyen271@csu.fullerton.edu  
 
 ## Overview
 This package contains a simple FTP server and client implementation written in **Python**, along with a batch script to run both the server and the client on a Windows system.
