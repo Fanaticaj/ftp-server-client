@@ -21,6 +21,27 @@ class colors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
+def init_ftp_data_socket(tuple_address_port):
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        print(colors.OKGREEN + "[+] Socket created succesfully." + colors.ENDC)
+    
+    except socket.error as err:
+        print(colors.FAIL + "[-] Socket creation failed - " + err + colors.ENDC)
+        return FAIL
+ 
+    # Connect to TCP socket
+    try:
+        s.connect(tuple_address_port)
+        print(colors.OKGREEN + "[+] Connected to server successfully..." + colors.ENDC)
+        s.send(str(tuple_address_port).encode())
+        return s
+
+    except socket.error as err:
+        print(colors.FAIL + "[-] Connecting to server failed" + colors.ENDC)
+        print(err)
+        return FAIL
+
 def main ():
     
     address = '127.0.0.1'
@@ -53,7 +74,18 @@ def main ():
 
             print(colors.OKGREEN + "[+] File received successfully." + colors.ENDC)
             s_data.close()
-        
+
+        if user_input.startswith("PUT"):
+            list_user_input = user_input.split(' ')
+            c_data = init_ftp_data_socket((address, DATA_PORT))
+            time.sleep(1) # Wait for server to start up
+
+            with open("client-files/" + list_user_input[1], "rb") as f:
+                data = f.read()
+                print(data)
+                c_data.send(str(data).encode())
+                f.close()
+                print(colors.OKBLUE + "File Sent to Server" + colors.ENDC)
         else:
             data = s.recv(1024).decode()
             print(data)

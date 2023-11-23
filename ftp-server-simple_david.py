@@ -99,6 +99,7 @@ def main ():
                 while file_data:
                     f.write(file_data)
                     file_data = con_data.recv(BUFFER_SIZE)
+                f.close()
 
             con_data.close()  # Close the connection socket after receiving data
             s_data.close()    # Close the server socket
