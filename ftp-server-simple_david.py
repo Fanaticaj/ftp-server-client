@@ -136,6 +136,14 @@ def main ():
 
             print(colors.OKGREEN + "[+] File received successfully." + colors.ENDC)
 
+        if data == "QUIT":
+                print("QUIT")
+                print(colors.OKGREEN + "[+] Closing socket and connection." + colors.ENDC)
+                s_controlled.close()
+                print(colors.OKGREEN + "[+] Socket and connection closed succesfully." + colors.ENDC)
+                print(colors.OKGREEN + "[+] Goodbye" + colors.ENDC)
+                break
+
             
 if __name__ == "__main__":
     main()

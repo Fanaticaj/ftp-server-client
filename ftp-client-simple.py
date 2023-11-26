@@ -75,7 +75,7 @@ def main ():
             print(colors.OKGREEN + "[+] File received successfully." + colors.ENDC)
             s_data.close()
 
-        if user_input.startswith("PUT"):
+        elif user_input.startswith("PUT"):
             list_user_input = user_input.split(' ')
             c_data = init_ftp_data_socket((address, DATA_PORT))
             time.sleep(1) # Wait for server to start up
@@ -97,9 +97,17 @@ def main ():
                 c_data.send(data.encode())
                 f.close()
                 print(colors.OKBLUE + "File Sent to Server" + colors.ENDC)
+        # if user_input.startswith("QUIT"):
+        #      break
+        elif user_input == "QUIT":
+             c_data.close()
+             print(colors.OKGREEN + "[+] Connection closed" + colors.ENDC)
+             print(colors.OKGREEN + "[+] Closing Program..." + colors.ENDC)
+             break
         else:
             data = s.recv(1024).decode()
             print(data)
+    print(colors.OKGREEN + "[+] Goodbye" + colors.ENDC)
 
 if __name__ == "__main__":
     main()
