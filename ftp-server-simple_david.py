@@ -70,11 +70,13 @@ def main ():
             print(data)
             con.send(str(os.listdir("./server-files")).encode())
 
-        #TODO: Allow GET To accept arguments for specific files in the direcory. Also, get the data sending working.
         # GET creates, a new data socket, waits for the client to connect and sends the desired file to the clients.
         if data.startswith("GET"):
 
+            # Split the request from the Client to get the File the client the client is requesting
             list_data = data.split(' ')
+
+            # Create a new data socket that the client will connect to
             s_data = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s_data.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             print(colors.OKGREEN + "[+] Data Socket created succesfully." + colors.ENDC)
@@ -83,14 +85,15 @@ def main ():
             s_data.listen()
             print(colors.OKGREEN + "[+] Data Socket awaiting client connections..." + colors.ENDC)
 
+            # Accept the Clients connection
             while len(clients_data) != 1:
                 con_data, c_addr_data = s_data.accept()
                 clients_data.append(con_data)
                 print(colors.OKBLUE + "[+] Client connected to data port, total Clients: " + colors.ENDC + str(len(clients_data)))
 
+            # Open the requested file
             with open("server-files/" + list_data[1], "r") as f:
-                data = f.read(BUFFER_SIZE)
-                print(data)
+                data = f.read(BUFFER_SIZE) 
                 dataSizeStr = str(len(data))
                 while len(dataSizeStr) < 10:
                        dataSizeStr = "0" + dataSizeStr
@@ -102,9 +105,11 @@ def main ():
                 while len(FileStr) < 25:
                            FileStr = " " + FileStr
                 data = FileStr + dataSizeStr + data
-                con_data.send(data.encode())    # Close the server socket
+                con_data.send(data.encode())
                 f.close()
                 print(colors.OKBLUE + "File Sent to Client" + colors.ENDC)
+                s_data.close()
+                con_data.close()
 
         # PUT will allow the client to upload a file to the server.
         if data.startswith("PUT"):

@@ -75,39 +75,29 @@ def main ():
         s.send(str(user_input).encode())
         time.sleep(1)
 
+        # GET will accept a file that is hosted on the server as an argument and download the file to the client-files directory 
         if user_input.startswith("GET"):
-
             s_data = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            print(colors.OKGREEN + "[+] Data Socket created succesfully." + colors.ENDC)
+            print(colors.OKGREEN + "[+] Data Socket created successfully." + colors.ENDC)
             s_data.connect((address, DATA_PORT))
             print(colors.OKGREEN + "[+] Data port connected to server successfully..." + colors.ENDC)
 
-            file_data = s_data.recv(BUFFER_SIZE)
-            print(file_data)
-            fileName = list_user_input[1]
-            fileName = fileName.replace(" ", "")
-            print("File name is: ", fileName)
-            newFile = open("./client-files/" + fileName, "w")
-            # size of the file
-            fileSizeBuff = recvAll(s_data, 35)
-            # Get the file size
-            #fileSize = int(fileSizeBuff)
-            print("The file size is ", 1024)
-            # Get the file data
-            file_data = recvAll(s_data, 1024)
-            newFile.write(file_data)
-            print("New file: " + fileName + " was added to the server")
-            newFile.close()
+            fileName = list_user_input[1].strip()  # Ensure no leading/trailing spaces
+            filePath = os.path.join("./client-files", fileName)
+    
+            try:
+                with open(filePath, "wb") as f:  # Use binary mode for universal compatibility
+                    fileData = recvAll(s_data, BUFFER_SIZE)  # Assuming BUFFER_SIZE is the correct size
+                    f.write(fileData.encode('utf-8'))  # If data is text, encode it to bytes
 
-            # con_data.shutdown(socket.SHUT_RDWR)
-            s_data.close()  # Close the connection socket after receiving data
-            # s_data.shutdown(socket.SHUT_RD)
-            # print(s_data.type)
-            s_data.close()    # Close the server socket
-            # print("closed successfully")
+                    print(f"New file: {fileName} was added to the client-files directory")
+                    f.close()
+            except IOError as e:
+                print(f"Error writing to file: {e}")
 
-
+            s_data.close()
             print(colors.OKGREEN + "[+] File received successfully." + colors.ENDC)
+
 
         if user_input.startswith("PUT"):
             list_user_input = user_input.split(' ')
