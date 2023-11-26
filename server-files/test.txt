@@ -1,1 +1,1 @@
-Wow, dogs are cool. Yes they are
+Client sending data to the server

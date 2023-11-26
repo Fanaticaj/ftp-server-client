@@ -4,8 +4,8 @@ import os
 import time
 
 # Constants
-CONTROLLED_PORT = 21
-DATA_PORT = 20
+CONTROLLED_PORT = 1026
+DATA_PORT = 1025
 FAIL = -1
 BUFFER_SIZE = 1024 
 

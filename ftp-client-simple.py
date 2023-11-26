@@ -4,8 +4,8 @@ import os
 import time
 
 # Constants
-CONTROLLED_PORT = 21
-DATA_PORT = 20
+CONTROLLED_PORT = 1026
+DATA_PORT = 1025
 FAIL = -1
 BUFFER_SIZE = 1024 
 
@@ -24,10 +24,10 @@ class colors:
 def init_ftp_data_socket(tuple_address_port):
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        print(colors.OKGREEN + "[+] Socket created succesfully." + colors.ENDC)
+        print(colors.OKGREEN + "[+] Data Socket created succesfully." + colors.ENDC)
     
     except socket.error as err:
-        print(colors.FAIL + "[-] Socket creation failed - " + err + colors.ENDC)
+        print(colors.FAIL + "[-] Data Socket creation failed - " + err + colors.ENDC)
         return FAIL
  
     # Connect to TCP socket
@@ -80,10 +80,21 @@ def main ():
             c_data = init_ftp_data_socket((address, DATA_PORT))
             time.sleep(1) # Wait for server to start up
 
-            with open("client-files/" + list_user_input[1], "rb") as f:
+            with open("client-files/" + list_user_input[1], "r") as f:
                 data = f.read()
-                print(data)
-                c_data.send(str(data).encode())
+                # Next 9 line were added to add in the header denoting size and the name of the file being sent
+                dataSizeStr = str(len(data))
+                while len(dataSizeStr) < 10:
+                       dataSizeStr = "0" + dataSizeStr
+                FileName = list_user_input[1]
+                if (len(FileName) > 25):
+                        print("File name is too large")
+                        break
+                FileStr = FileName
+                while len(FileStr) < 25:
+                           FileStr = " " + FileStr
+                data = FileStr + dataSizeStr + data
+                c_data.send(data.encode())
                 f.close()
                 print(colors.OKBLUE + "File Sent to Server" + colors.ENDC)
         else:

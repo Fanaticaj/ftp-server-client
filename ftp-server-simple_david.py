@@ -4,8 +4,8 @@ import os
 import time
 
 # Constants
-CONTROLLED_PORT = 21
-DATA_PORT = 20
+CONTROLLED_PORT = 1026
+DATA_PORT = 1025
 FAIL = -1
 BUFFER_SIZE = 1024 
 
@@ -21,6 +21,22 @@ class colors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'         
 
+def recvAll(sock, numBytes):
+	# The buffer
+	recvBuff = ""
+	# The temporary buffer
+	tmpBuff = ""
+	# Keep receiving till all is received
+	while len(recvBuff) < numBytes:
+		# Attempt to receive bytes
+		tmpBuff =  sock.recv(numBytes).decode()
+		# The other side has closed the socket
+		if not tmpBuff:
+			break
+		# Add the received bytes to the buffer
+		recvBuff += tmpBuff
+	return recvBuff
+
 def main ():
     
     address = '127.0.0.1'
@@ -31,6 +47,7 @@ def main ():
     
     # Create, Bind, and Listen on the Control Socket
     s_controlled = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s_controlled.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # added to fix the address already in use issue
     print(colors.OKGREEN + "[+] Socket created succesfully." + colors.ENDC)
     s_controlled.bind(tuple_address_port)
     print(colors.OKGREEN + "[+] Socket bound succesfully." + colors.ENDC)
@@ -68,7 +85,7 @@ def main ():
                 clients_data.append(con_data)
                 print(colors.OKBLUE + "[+] Client connected to data port, total Clients: " + colors.ENDC + str(len(clients_data)))
 
-            with open("server-files/test.txt", "rb") as f:
+            with open("server-files/test.txt", "r") as f:
                 file_data = f.read(BUFFER_SIZE)
                 while file_data:
                     con_data.send(file_data)
@@ -80,7 +97,9 @@ def main ():
         
         # PUT will allow the client to upload a file to the server.
         if data.startswith("PUT"):
+            clients_data = []
             s_data = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s_data.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # added to fix the address already in use issue
             print(colors.OKGREEN + "[+] Data Socket created successfully." + colors.ENDC)
             s_data.bind(tuple_data_port)
             print(colors.OKGREEN + "[+] Data Socket bound successfully." + colors.ENDC)
@@ -92,17 +111,28 @@ def main ():
                 clients_data.append(con_data)
                 print(colors.OKBLUE + "[+] Client connected to data port, total Clients: " + colors.ENDC + str(len(clients_data)))
 
-            # Receive and save the file from the client
-            with open("server-files/received_file.txt", "wb") as f:
-                file_data = con_data.recv(BUFFER_SIZE)
-                print(file_data)
-                while file_data:
-                    f.write(file_data)
-                    file_data = con_data.recv(BUFFER_SIZE)
-                f.close()
+            file_data = con_data.recv(BUFFER_SIZE)
+            fileName = recvAll(con_data, 25)
+            fileName = fileName.replace(" ", "")
+            print("File name is: ", fileName)
+            newFile = open("server-files/" + fileName, "w")
+            # size of the file
+            fileSizeBuff = recvAll(con_data, 10)
+            # Get the file size
+            fileSize = int(float(fileSizeBuff))
+            print("The file size is ", fileSize)
+            # Get the file data
+            fileData = recvAll(con_data, fileSize)
+            newFile.write(fileData)
+            print("New file: " + fileName + " was added to the server")
+            newFile.close()
 
+            # con_data.shutdown(socket.SHUT_RDWR)
             con_data.close()  # Close the connection socket after receiving data
+            # s_data.shutdown(socket.SHUT_RD)
+            # print(s_data.type)
             s_data.close()    # Close the server socket
+            # print("closed successfully")
 
             print(colors.OKGREEN + "[+] File received successfully." + colors.ENDC)
 
