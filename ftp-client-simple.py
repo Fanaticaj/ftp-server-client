@@ -42,6 +42,22 @@ def init_ftp_data_socket(tuple_address_port):
         print(err)
         return FAIL
 
+def recvAll(sock, numBytes):
+	# The buffer
+	recvBuff = ""
+	# The temporary buffer
+	tmpBuff = ""
+	# Keep receiving till all is received
+	while len(recvBuff) < numBytes:
+		# Attempt to receive bytes
+		tmpBuff =  sock.recv(numBytes).decode()
+		# The other side has closed the socket
+		if not tmpBuff:
+			break
+		# Add the received bytes to the buffer
+		recvBuff += tmpBuff
+	return recvBuff
+
 def main ():
     
     address = '127.0.0.1'
@@ -55,28 +71,46 @@ def main ():
     print(colors.OKBLUE + "Please enter a command..." + colors.ENDC)
     while True:
         user_input = input()
+        list_user_input = user_input.split(' ')
         s.send(str(user_input).encode())
         time.sleep(1)
 
-        if user_input == "GET":
+        if user_input.startswith("GET"):
 
             s_data = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             print(colors.OKGREEN + "[+] Data Socket created succesfully." + colors.ENDC)
             s_data.connect((address, DATA_PORT))
             print(colors.OKGREEN + "[+] Data port connected to server successfully..." + colors.ENDC)
-            print(data)
-            with open("./client-files/received_test.txt", "wb") as f:
-                while True:
-                    data = s_data.recv(BUFFER_SIZE)
-                    if not data:
-                        break
-                f.write(data)
+
+            file_data = s_data.recv(BUFFER_SIZE)
+            print(file_data)
+            fileName = list_user_input[1]
+            fileName = fileName.replace(" ", "")
+            print("File name is: ", fileName)
+            newFile = open("./client-files/" + fileName, "w")
+            # size of the file
+            fileSizeBuff = recvAll(s_data, 35)
+            # Get the file size
+            #fileSize = int(fileSizeBuff)
+            print("The file size is ", 1024)
+            # Get the file data
+            file_data = recvAll(s_data, 1024)
+            newFile.write(file_data)
+            print("New file: " + fileName + " was added to the server")
+            newFile.close()
+
+            # con_data.shutdown(socket.SHUT_RDWR)
+            s_data.close()  # Close the connection socket after receiving data
+            # s_data.shutdown(socket.SHUT_RD)
+            # print(s_data.type)
+            s_data.close()    # Close the server socket
+            # print("closed successfully")
+
 
             print(colors.OKGREEN + "[+] File received successfully." + colors.ENDC)
-            s_data.close()
 
         if user_input.startswith("PUT"):
-            list_user_input = user_input.split(' ')
+            
             c_data = init_ftp_data_socket((address, DATA_PORT))
             time.sleep(1) # Wait for server to start up
 

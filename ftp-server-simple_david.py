@@ -72,29 +72,40 @@ def main ():
 
         #TODO: Allow GET To accept arguments for specific files in the direcory. Also, get the data sending working.
         # GET creates, a new data socket, waits for the client to connect and sends the desired file to the clients.
-        if data == "GET":
+        if data.startswith("GET"):
+
+            list_data = data.split(' ')
             s_data = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s_data.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             print(colors.OKGREEN + "[+] Data Socket created succesfully." + colors.ENDC)
             s_data.bind(tuple_data_port)
             print(colors.OKGREEN + "[+] Data Socket bound succesfully." + colors.ENDC)
             s_data.listen()
             print(colors.OKGREEN + "[+] Data Socket awaiting client connections..." + colors.ENDC)
-            
+
             while len(clients_data) != 1:
                 con_data, c_addr_data = s_data.accept()
                 clients_data.append(con_data)
                 print(colors.OKBLUE + "[+] Client connected to data port, total Clients: " + colors.ENDC + str(len(clients_data)))
 
-            with open("server-files/test.txt", "r") as f:
-                file_data = f.read(BUFFER_SIZE)
-                while file_data:
-                    con_data.send(file_data)
-                    file_data = f.read(BUFFER_SIZE)
-            con_data.close()  # Close the connection socket after sending data
-            s_data.close()    # Close the server socket
+            with open("server-files/" + list_data[1], "r") as f:
+                data = f.read(BUFFER_SIZE)
+                print(data)
+                dataSizeStr = str(len(data))
+                while len(dataSizeStr) < 10:
+                       dataSizeStr = "0" + dataSizeStr
+                FileName = list_data[1]
+                if (len(FileName) > 25):
+                        print("File name is too large")
+                        break
+                FileStr = FileName
+                while len(FileStr) < 25:
+                           FileStr = " " + FileStr
+                data = FileStr + dataSizeStr + data
+                con_data.send(data.encode())    # Close the server socket
+                f.close()
+                print(colors.OKBLUE + "File Sent to Client" + colors.ENDC)
 
-            print(colors.OKGREEN + "[+] File sent successfully." + colors.ENDC)
-        
         # PUT will allow the client to upload a file to the server.
         if data.startswith("PUT"):
             clients_data = []
@@ -115,7 +126,7 @@ def main ():
             fileName = recvAll(con_data, 25)
             fileName = fileName.replace(" ", "")
             print("File name is: ", fileName)
-            newFile = open("server-files/" + fileName, "w")
+            newFile = open("server-files/" + fileName, "wb")
             # size of the file
             fileSizeBuff = recvAll(con_data, 10)
             # Get the file size
