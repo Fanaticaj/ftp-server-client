@@ -26,20 +26,22 @@ class colors:
     UNDERLINE = '\033[4m'         
 
 def recvAll(sock, numBytes):
-	# The buffer
-	recvBuff = ""
-	# The temporary buffer
-	tmpBuff = ""
-	# Keep receiving till all is received
-	while len(recvBuff) < numBytes:
-		# Attempt to receive bytes
-		tmpBuff =  sock.recv(numBytes).decode('utf-8')
-		# The other side has closed the socket
-		if not tmpBuff:
-			break
-		# Add the received bytes to the buffer
-		recvBuff += tmpBuff
-	return recvBuff
+        # The buffer
+        recvBuff = ""
+        # The temporary buffer
+        tmpBuff = ""
+        # Keep receiving till all is received
+        while len(recvBuff) < numBytes:
+            # Attempt to receive bytes
+            tmpBuff =  sock.recv(numBytes).decode('utf-8')
+            # The other side has closed the socket
+            if not tmpBuff:
+                break
+            # Add the received bytes to the buffer
+            recvBuff += tmpBuff
+        response = "OK"
+        sock.send(response.encode())
+        return recvBuff
 
 def main ():
     
@@ -152,15 +154,16 @@ def main ():
             while(i < fileSize):
                     # Receive data
                     recvAll(con_data, 35)
-                    fileData = recvAll(con_data, BUFFER_SIZE - 35)
+                    if (i + BUFFER_SIZE - 35 < fileSize):
+                          fileData = recvAll(con_data, BUFFER_SIZE - 35)
+                    else:
+                          fileData = recvAll(con_data, fileSize - BUFFER_SIZE - 35)
                     newFile.write(fileData)
                     if (i + BUFFER_SIZE - 35 > fileSize):
                         print("Received the first ", fileSize, "bytes")
                     else:
                         print("Received the first ", i + BUFFER_SIZE - 35, "bytes")
                     i += BUFFER_SIZE - 35
-                    # response = "OK"
-                    # con_data.send(response.encode())
             # Print confirmation and close file
             print("New file: " + fileName + " was added to the server")
             newFile.close()

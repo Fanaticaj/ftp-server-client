@@ -115,7 +115,14 @@ def main ():
                 print("File size is: ", fileSize)
                 
                 while True:
-                    sendData = data[i:(i + BUFFER_SIZE - 35)]
+                    if (i + BUFFER_SIZE - 35 > fileSize):
+                         sendData = data[i:fileSize]
+                    elif (i + BUFFER_SIZE - 35 < fileSize):
+                        sendData = data[i:(i + BUFFER_SIZE - 35)]
+                    else:
+                        #  print("break 1")
+                         break
+                    # print(f'Send data is {sendData}')
                     dataSizeStr = str(fileSize)
                     if (len(dataSizeStr) >= 10):
                         print(colors.FAIL + "[-] File size too big" + colors.ENDC)
@@ -129,26 +136,18 @@ def main ():
                     FileStr = FileName
                     while len(FileStr) < 25:
                             FileStr = " " + FileStr
-                    sendData = FileStr + dataSizeStr + sendData
-                    c_data.send(sendData.encode())
                     if fileSize < i:
+                        # print("break 2")
                         break
+                    sendData = FileStr + dataSizeStr + sendData
                     if (i + BUFFER_SIZE - 35 > fileSize):
                         print("Sent the first ", fileSize, "bytes")
                     else:
                         print("Sent the first ", i + BUFFER_SIZE - 35, "bytes")
                     i += BUFFER_SIZE - 35
-                    # response = c_data.recv(1024).decode()
-                    # print(response)
-                # for _ in range(5):
-                #     # Send "hello world" to the server
-                #     message = "hello world"
-                #     c_data.send(message.encode('utf-8'))
-                #     print(f"Sent message to server: {message}")
-
-                #     # Receive response from the server
-                #     response = c_data.recv(1024).decode('utf-8')
-                #     print(f"Received response from server: {response}")
+                    c_data.send(sendData.encode())
+                    response = c_data.recv(2).decode()
+                    print(response)
                 f.close()
                 print(colors.OKBLUE + "File Sent to Server" + colors.ENDC)
 
