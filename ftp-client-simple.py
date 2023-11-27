@@ -2,12 +2,16 @@ import socket
 import multiprocessing as mp
 import os
 import time
+import threading
 
 # Constants
 CONTROLLED_PORT = 1026
 DATA_PORT = 1025
 FAIL = -1
-BUFFER_SIZE = 1024 
+BUFFER_SIZE = 45 
+
+# Gobal mutex
+mutex = threading.Lock()
 
 # Makes my strings pretty
 class colors:
@@ -105,24 +109,49 @@ def main ():
             time.sleep(1) # Wait for server to start up
 
             with open("client-files/" + list_user_input[1], "r") as f:
+                i = 0
                 data = f.read()
-                # Next 9 line were added to add in the header denoting size and the name of the file being sent
-                dataSizeStr = str(len(data))
-                while len(dataSizeStr) < 10:
-                       dataSizeStr = "0" + dataSizeStr
-                FileName = list_user_input[1]
-                if (len(FileName) > 25):
-                        print("File name is too large")
+                fileSize = len(data)
+                print("File size is: ", fileSize)
+                
+                while True:
+                    sendData = data[i:(i + BUFFER_SIZE - 35)]
+                    dataSizeStr = str(fileSize)
+                    if (len(dataSizeStr) >= 10):
+                        print(colors.FAIL + "[-] File size too big" + colors.ENDC)
                         break
-                FileStr = FileName
-                while len(FileStr) < 25:
-                           FileStr = " " + FileStr
-                data = FileStr + dataSizeStr + data
-                c_data.send(data.encode())
+                    while len(dataSizeStr) < 10:
+                        dataSizeStr = "0" + dataSizeStr
+                    FileName = list_user_input[1]
+                    if (len(FileName) > 25):
+                            print("File name is too large")
+                            break
+                    FileStr = FileName
+                    while len(FileStr) < 25:
+                            FileStr = " " + FileStr
+                    sendData = FileStr + dataSizeStr + sendData
+                    c_data.send(sendData.encode())
+                    if fileSize < i:
+                        break
+                    if (i + BUFFER_SIZE - 35 > fileSize):
+                        print("Sent the first ", fileSize, "bytes")
+                    else:
+                        print("Sent the first ", i + BUFFER_SIZE - 35, "bytes")
+                    i += BUFFER_SIZE - 35
+                    # response = c_data.recv(1024).decode()
+                    # print(response)
+                # for _ in range(5):
+                #     # Send "hello world" to the server
+                #     message = "hello world"
+                #     c_data.send(message.encode('utf-8'))
+                #     print(f"Sent message to server: {message}")
+
+                #     # Receive response from the server
+                #     response = c_data.recv(1024).decode('utf-8')
+                #     print(f"Received response from server: {response}")
                 f.close()
                 print(colors.OKBLUE + "File Sent to Server" + colors.ENDC)
-        # if user_input.startswith("QUIT"):
-        #      break
+
         elif user_input == "QUIT":
              c_data.close()
              print(colors.OKGREEN + "[+] Connection closed" + colors.ENDC)

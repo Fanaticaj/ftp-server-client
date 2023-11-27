@@ -2,12 +2,16 @@ import socket
 import multiprocessing as mp
 import os
 import time
+import threading
 
 # Constants
 CONTROLLED_PORT = 1026
 DATA_PORT = 1025
 FAIL = -1
-BUFFER_SIZE = 1024 
+BUFFER_SIZE = 45 
+
+# Global mutex
+mutex = threading.Lock()
 
 # Makes my strings pretty
 class colors:
@@ -29,7 +33,7 @@ def recvAll(sock, numBytes):
 	# Keep receiving till all is received
 	while len(recvBuff) < numBytes:
 		# Attempt to receive bytes
-		tmpBuff =  sock.recv(numBytes).decode()
+		tmpBuff =  sock.recv(numBytes).decode('utf-8')
 		# The other side has closed the socket
 		if not tmpBuff:
 			break
@@ -127,21 +131,48 @@ def main ():
                 clients_data.append(con_data)
                 print(colors.OKBLUE + "[+] Client connected to data port, total Clients: " + colors.ENDC + str(len(clients_data)))
 
+            # Recieve first segment
             file_data = con_data.recv(BUFFER_SIZE)
             fileName = recvAll(con_data, 25)
             fileName = fileName.replace(" ", "")
             print("File name is: ", fileName)
-            newFile = open("server-files/" + fileName, "wb")
+            newFile = open("server-files/" + fileName, "w")
             # size of the file
             fileSizeBuff = recvAll(con_data, 10)
             # Get the file size
             fileSize = int(float(fileSizeBuff))
             print("The file size is ", fileSize)
             # Get the file data
-            fileData = recvAll(con_data, fileSize)
+            fileData = recvAll(con_data, BUFFER_SIZE - 35)
             newFile.write(fileData)
+            print("Received the first ", BUFFER_SIZE - 35, "bytes")
+            i = BUFFER_SIZE - 35
+            newFile.close()
+            newFile = open("server-files/" + fileName, "a")
+            while(i < fileSize):
+                    # Receive data
+                    recvAll(con_data, 35)
+                    fileData = recvAll(con_data, BUFFER_SIZE - 35)
+                    newFile.write(fileData)
+                    if (i + BUFFER_SIZE - 35 > fileSize):
+                        print("Received the first ", fileSize, "bytes")
+                    else:
+                        print("Received the first ", i + BUFFER_SIZE - 35, "bytes")
+                    i += BUFFER_SIZE - 35
+                    # response = "OK"
+                    # con_data.send(response.encode())
+            # Print confirmation and close file
             print("New file: " + fileName + " was added to the server")
             newFile.close()
+            # for _ in range(5):
+            #     # Receive data from the client
+            #     data = con_data.recv(1024).decode('utf-8')
+            #     print(f"Received data from client: {data}")
+
+            #     # Send an 'OK' response to the client
+            #     response = "OK"
+            #     con_data.send(response.encode('utf-8'))
+            #     print(f"Sent response to client: {response}")
 
             # con_data.shutdown(socket.SHUT_RDWR)
             con_data.close()  # Close the connection socket after receiving data
@@ -150,7 +181,7 @@ def main ():
             s_data.close()    # Close the server socket
             # print("closed successfully")
 
-            print(colors.OKGREEN + "[+] File received successfully." + colors.ENDC)
+            print(colors.OKGREEN + "[+] File received successsfully." + colors.ENDC)
 
         if data == "QUIT":
                 print("QUIT")
