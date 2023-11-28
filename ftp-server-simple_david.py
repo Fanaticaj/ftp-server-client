@@ -33,7 +33,7 @@ def recvAll(sock, numBytes):
         # Keep receiving till all is received
         while len(recvBuff) < numBytes:
             # Attempt to receive bytes
-            tmpBuff =  sock.recv(numBytes).decode('utf-8')
+            tmpBuff = sock.recv(numBytes).decode('utf-8')
             # The other side has closed the socket
             if not tmpBuff:
                 break
@@ -42,6 +42,23 @@ def recvAll(sock, numBytes):
         response = "OK"
         sock.send(response.encode())
         return recvBuff
+
+def handle_get(client_connection, filename):
+    try:
+        with open('./server-files/' + filename, 'rb') as file:
+            file_data = file.read()
+            file_size = len(file_data)
+            print("File Data:\n" + str(file_data))
+            print("File Size:\n" + str(file_size))
+
+            # Send file size first
+            client_connection.sendall(str(file_size).encode() + b'\n')
+            # Send file data
+            client_connection.sendall(file_data)
+            print(f"Sent '{filename}' to the client.")
+    except FileNotFoundError:
+        client_connection.sendall(b'0\n')
+        print(f"File not found: {filename}")
 
 def main ():
     
@@ -76,46 +93,27 @@ def main ():
             print(data)
             con.send(str(os.listdir("./server-files")).encode())
 
-        # GET creates, a new data socket, waits for the client to connect and sends the desired file to the clients.
+        # Handling GET command
         if data.startswith("GET"):
-
-            # Split the request from the Client to get the File the client the client is requesting
-            list_data = data.split(' ')
-
-            # Create a new data socket that the client will connect to
+            c_data = data.split(' ')
             s_data = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s_data.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            print(colors.OKGREEN + "[+] Data Socket created succesfully." + colors.ENDC)
+            print(colors.OKGREEN + "[+] Data Socket created successfully." + colors.ENDC)
             s_data.bind(tuple_data_port)
-            print(colors.OKGREEN + "[+] Data Socket bound succesfully." + colors.ENDC)
+            print(colors.OKGREEN + "[+] Data Socket bound successfully." + colors.ENDC)
             s_data.listen()
             print(colors.OKGREEN + "[+] Data Socket awaiting client connections..." + colors.ENDC)
 
-            # Accept the Clients connection
-            while len(clients_data) != 1:
-                con_data, c_addr_data = s_data.accept()
-                clients_data.append(con_data)
-                print(colors.OKBLUE + "[+] Client connected to data port, total Clients: " + colors.ENDC + str(len(clients_data)))
+            # Accept a client connection on the data socket
+            con_data, _ = s_data.accept()
+            print(colors.OKGREEN + "[+] Client connected to data socket." + colors.ENDC)
 
-            # Open the requested file
-            with open("server-files/" + list_data[1], "r") as f:
-                data = f.read(BUFFER_SIZE) 
-                dataSizeStr = str(len(data))
-                while len(dataSizeStr) < 10:
-                       dataSizeStr = "0" + dataSizeStr
-                FileName = list_data[1]
-                if (len(FileName) > 25):
-                        print("File name is too large")
-                        break
-                FileStr = FileName
-                while len(FileStr) < 25:
-                           FileStr = " " + FileStr
-                data = FileStr + dataSizeStr + data
-                con_data.send(data.encode())
-                f.close()
-                print(colors.OKBLUE + "File Sent to Client" + colors.ENDC)
-                s_data.close()
-                con_data.close()
+            # Now use this connected socket (con_data) for file transfer
+            handle_get(con_data, c_data[1])
+            con_data.close()
+            s_data.close()
+            
+            con.send("ACK".encode())
 
         # PUT will allow the client to upload a file to the server.
         if data.startswith("PUT"):

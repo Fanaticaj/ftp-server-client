@@ -62,6 +62,34 @@ def recvAll(sock, numBytes):
 		recvBuff += tmpBuff
 	return recvBuff
 
+def request_get(server_connection, filename):
+    # Send GET command
+    server_connection.sendall(f'GET {filename}'.encode() + b'\n')
+
+
+    # Receive file size
+    file_size = int(server_connection.recv(1024).decode().strip())
+
+    if file_size == 0:
+        print(f"File not found: {filename}")
+        return
+
+    # Receive file data
+    received_size = 0
+    file_data = b''
+    while received_size < file_size:
+        chunk = server_connection.recv(1024)
+        if not chunk:
+            break
+        file_data += chunk
+        received_size += len(chunk)
+        print("File Data:\n" + str(file_data))
+        print("Received Size:\n" + str(received_size))
+
+    with open('./client-files/' + filename, 'wb') as file:
+        file.write(file_data)
+        print(f"Received '{filename}' from the server.")
+
 def main ():
     
     address = '127.0.0.1'
@@ -79,29 +107,11 @@ def main ():
         s.send(str(user_input).encode())
         time.sleep(1)
 
-        # GET will accept a file that is hosted on the server as an argument and download the file to the client-files directory 
         if user_input.startswith("GET"):
-            s_data = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            print(colors.OKGREEN + "[+] Data Socket created successfully." + colors.ENDC)
-            s_data.connect((address, DATA_PORT))
-            print(colors.OKGREEN + "[+] Data port connected to server successfully..." + colors.ENDC)
 
-            fileName = list_user_input[1].strip()  # Ensure no leading/trailing spaces
-            filePath = os.path.join("./client-files", fileName)
-    
-            try:
-                with open(filePath, "wb") as f:  # Use binary mode for universal compatibility
-                    fileData = recvAll(s_data, BUFFER_SIZE)  # Assuming BUFFER_SIZE is the correct size
-                    f.write(fileData.encode('utf-8'))  # If data is text, encode it to bytes
-
-                    print(f"New file: {fileName} was added to the client-files directory")
-                    f.close()
-            except IOError as e:
-                print(f"Error writing to file: {e}")
-
-            s_data.close()
-            print(colors.OKGREEN + "[+] File received successfully." + colors.ENDC)
-
+            c_data = init_ftp_data_socket((address, DATA_PORT))
+            request_get(c_data, list_user_input[1])
+            c_data.close()
 
         if user_input.startswith("PUT"):
             list_user_input = user_input.split(' ')
