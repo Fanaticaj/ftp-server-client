@@ -80,15 +80,17 @@ def request_get(server_connection, filename):
     while received_size < file_size:
         chunk = server_connection.recv(1024)
         if not chunk:
-            break
+            break 
         file_data += chunk
         received_size += len(chunk)
-        print("File Data:\n" + str(file_data))
-        print("Received Size:\n" + str(received_size))
 
+    if file_data == "File transfer from server failed...":
+        return False
+    
     with open('./client-files/' + filename, 'wb') as file:
         file.write(file_data)
-        print(f"Received '{filename}' from the server.")
+        print(colors.OKGREEN + "[+] File transfer complete." + colors.ENDC)
+        return True
 
 def main ():
     
@@ -110,8 +112,11 @@ def main ():
         if user_input.startswith("GET"):
 
             c_data = init_ftp_data_socket((address, DATA_PORT))
-            request_get(c_data, list_user_input[1])
-            c_data.close()
+            if (request_get(c_data, list_user_input[1])): 
+                c_data.close()
+
+            else:
+                 print(colors.FAIL + "File transfer from server failed.." + colors.ENDC)
 
         if user_input.startswith("PUT"):
             list_user_input = user_input.split(' ')

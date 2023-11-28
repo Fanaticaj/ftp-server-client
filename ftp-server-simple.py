@@ -56,8 +56,11 @@ def handle_get(client_connection, filename):
             # Send file data
             client_connection.sendall(file_data)
             print(f"Sent '{filename}' to the client.")
+            return True
+        
     except FileNotFoundError:
-        client_connection.sendall(b'0\n')
+        #client_connection.sendall(b'0\n')
+        return False
         print(f"File not found: {filename}")
 
 def main ():
@@ -109,11 +112,15 @@ def main ():
             print(colors.OKGREEN + "[+] Client connected to data socket." + colors.ENDC)
 
             # Now use this connected socket (con_data) for file transfer
-            handle_get(con_data, c_data[1])
-            con_data.close()
-            s_data.close()
-            
-            con.send("ACK".encode())
+            if(handle_get(con_data, c_data[1])):
+                con_data.close()
+                s_data.close()
+                con.send("File transfer from server was a successs.".encode())
+      
+            else:
+                con_data.close()
+                s_data.close()
+                con.send("File transfer from server failed...".encode())
 
         # PUT will allow the client to upload a file to the server.
         if data.startswith("PUT"):
