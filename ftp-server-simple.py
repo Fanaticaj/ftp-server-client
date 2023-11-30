@@ -39,8 +39,8 @@ def recvAll(sock, numBytes):
                 break
             # Add the received bytes to the buffer
             recvBuff += tmpBuff
-        response = "OK"
-        sock.send(response.encode())
+        # response = "OK"
+        # sock.send(response.encode())
         return recvBuff
 
 def handle_get(client_connection, filename):
@@ -162,7 +162,9 @@ def main ():
                     if (i + BUFFER_SIZE - 35 < fileSize):
                           fileData = recvAll(con_data, BUFFER_SIZE - 35)
                     else:
-                          fileData = recvAll(con_data, fileSize - BUFFER_SIZE - 35)
+                          fileData = recvAll(con_data, fileSize - i)
+                        #   print(f"here: {fileSize - i}")
+                    print(f"File data is: {fileData}")
                     newFile.write(fileData)
                     if (i + BUFFER_SIZE - 35 > fileSize):
                         print("Received the first ", fileSize, "bytes")
@@ -172,15 +174,6 @@ def main ():
             # Print confirmation and close file
             print("New file: " + fileName + " was added to the server")
             newFile.close()
-            # for _ in range(5):
-            #     # Receive data from the client
-            #     data = con_data.recv(1024).decode('utf-8')
-            #     print(f"Received data from client: {data}")
-
-            #     # Send an 'OK' response to the client
-            #     response = "OK"
-            #     con_data.send(response.encode('utf-8'))
-            #     print(f"Sent response to client: {response}")
 
             # con_data.shutdown(socket.SHUT_RDWR)
             con_data.close()  # Close the connection socket after receiving data

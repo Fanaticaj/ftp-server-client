@@ -155,14 +155,15 @@ def main ():
                         # print("break 2")
                         break
                     sendData = FileStr + dataSizeStr + sendData
+                    # print(f"Send data is: {sendData}")
                     if (i + BUFFER_SIZE - 35 > fileSize):
                         print("Sent the first ", fileSize, "bytes")
                     else:
                         print("Sent the first ", i + BUFFER_SIZE - 35, "bytes")
                     i += BUFFER_SIZE - 35
                     c_data.send(sendData.encode())
-                    response = c_data.recv(2).decode()
-                    print(response)
+                    # response = c_data.recv(4).decode()
+                    # print(response)
                 f.close()
                 print(colors.OKBLUE + "File Sent to Server" + colors.ENDC)
 
