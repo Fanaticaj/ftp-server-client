@@ -3,6 +3,7 @@ import multiprocessing as mp
 import os
 import time
 import threading
+import argparse
 
 # Constants
 CONTROLLED_PORT = 1026
@@ -12,6 +13,12 @@ BUFFER_SIZE = 45
 
 # Gobal mutex
 mutex = threading.Lock()
+
+# Portnumber stuff
+parser = argparse.ArgumentParser()
+parser.add_argument('port_number', metavar='N', type=int,
+                    nargs=1, default=CONTROLLED_PORT)
+args = parser.parse_args()
 
 # Makes my strings pretty
 class colors:
@@ -66,7 +73,6 @@ def request_get(server_connection, filename):
     # Send GET command
     server_connection.sendall(f'GET {filename}'.encode() + b'\n')
 
-
     # Receive file size
     file_size = int(server_connection.recv(1024).decode().strip())
 
@@ -89,8 +95,18 @@ def request_get(server_connection, filename):
     
     with open('./client-files/' + filename, 'wb') as file:
         file.write(file_data)
-        print(colors.OKGREEN + "[+] File transfer complete." + colors.ENDC)
+        print("File size is: " + str(file_size))
+        print("New File: " + filename + " was added to the Client")
         return True
+
+def validate_input(user_input):
+    if(user_input == 'QUIT' or user_input == 'LS' or user_input == 'GET' or user_input == 'PUT'):
+        return True
+    else:
+        print(colors.WARNING + "[-] Invalid input" + colors.ENDC)
+        return False
+                
+
 
 def main ():
     
@@ -99,13 +115,19 @@ def main ():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     print(colors.OKGREEN + "[+] Socket created succesfully." + colors.ENDC)
 
-    s.connect((address, CONTROLLED_PORT))
+    s.connect((address, args.port_number[0]))
     print(colors.OKGREEN + "[+] Connected to server successfully..." + colors.ENDC)
 
     print(colors.OKBLUE + "Please enter a command..." + colors.ENDC)
     while True:
-        user_input = input()
-        list_user_input = user_input.split(' ')
+    
+        valid_input = False
+
+        while valid_input != True:
+            user_input = input()
+            list_user_input = user_input.split(' ')
+            valid_input = validate_input(list_user_input[0])
+
         s.send(str(user_input).encode())
         time.sleep(1)
 
@@ -117,6 +139,7 @@ def main ():
 
             else:
                  print(colors.FAIL + "File transfer from server failed.." + colors.ENDC)
+                 continue
 
         if user_input.startswith("PUT"):
             list_user_input = user_input.split(' ')
@@ -172,6 +195,7 @@ def main ():
              print(colors.OKGREEN + "[+] Connection closed" + colors.ENDC)
              print(colors.OKGREEN + "[+] Closing Program..." + colors.ENDC)
              break
+
         else:
             data = s.recv(1024).decode()
             print(data)

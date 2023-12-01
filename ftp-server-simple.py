@@ -3,6 +3,7 @@ import multiprocessing as mp
 import os
 import time
 import threading
+import argparse
 
 # Constants
 CONTROLLED_PORT = 1026
@@ -12,6 +13,12 @@ BUFFER_SIZE = 45
 
 # Global mutex
 mutex = threading.Lock()
+
+# Portnumber stuff
+parser = argparse.ArgumentParser()
+parser.add_argument('port_number', metavar='N', type=int,
+                    nargs=1, default=CONTROLLED_PORT)
+args = parser.parse_args()
 
 # Makes my strings pretty
 class colors:
@@ -59,14 +66,14 @@ def handle_get(client_connection, filename):
             return True
         
     except FileNotFoundError:
-        #client_connection.sendall(b'0\n')
-        return False
+        client_connection.sendall(b'0\n')
         print(f"File not found: {filename}")
+        return False
 
 def main ():
     
     address = '127.0.0.1'
-    tuple_address_port = (address, CONTROLLED_PORT)
+    tuple_address_port = (address, args.port_number[0])
     tuple_data_port = (address, DATA_PORT)
     clients = []
     clients_data = []
@@ -120,7 +127,7 @@ def main ():
             else:
                 con_data.close()
                 s_data.close()
-                con.send("File transfer from server failed...".encode())
+                #con.send("File transfer from server failed...".encode())
 
         # PUT will allow the client to upload a file to the server.
         if data.startswith("PUT"):
