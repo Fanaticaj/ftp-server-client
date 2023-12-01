@@ -29,6 +29,8 @@ This project provides a simple FTP server and client implementation in Python. I
       - GET <filename>
       - LS
       - QUIT
+    *note: if you want to change the port number please go in an alter the number on the port if you are using the
+     batch script
 
 ### Server Implementation
 
