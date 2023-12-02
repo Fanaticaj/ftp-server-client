@@ -24,16 +24,25 @@ This project provides a simple FTP server and client implementation in Python. I
 **Running the Batch Script**:
    - Double-click on `run-simple.bat`.
    - The script opens two command prompt windows: one for the server and another for the client.
-   - The server starts first, followed by the client. You can then provide the client with the follwing commands:
+   - The server starts first, followed by the client. You may then provide the client with the following commands:
       - PUT <filename>
       - GET <filename>
       - LS
       - QUIT  
-*note: if you want to change the port number please go in an alter the number on the port if you are using the
+*Note: if you want to change the port number, please go in and alter the number on the port if you are using the
      batch script
-
+**Alternatively**:
+   - Open two terminals, each open to the directory that hosts the source code.
+   - In the first terminal, run the following command: python3 ftp-server-simple.py <port number>
+   - In the second terminal run the following command: python3 ftp-server-client.py '<IP address> <port number>'
+   - You may then provide the client with the following commands:
+         - PUT <filename>
+         - GET <filename>
+         - LS
+         - QUIT
+*Note: the '' in the command for the client is important 
+     
 ### Server Implementation
-
 #### 1. PUT
 - The `PUT` command allows the client to upload a file to the server.
 - The server creates a data socket and binds it to a specific port to handle file transfer.
