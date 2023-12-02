@@ -52,22 +52,38 @@ def recvAll(sock, numBytes):
 
 def handle_get(client_connection, filename):
     try:
-        with open('./server-files/' + filename, 'rb') as file:
-            file_data = file.read()
-            file_size = len(file_data)
-            print("File Data:\n" + str(file_data))
-            print("File Size:\n" + str(file_size))
-
-            # Send file size first
-            client_connection.sendall(str(file_size).encode() + b'\n')
-            # Send file data
-            client_connection.sendall(file_data)
-            print(f"Sent '{filename}' to the client.")
+        with open('./server-files/' + filename, 'r') as file:
+            data = file.read()
+            fileSize = len(data)
+            print("File size is: ", fileSize)
+            sendData = data[:fileSize]
+            dataSizeStr = str(fileSize)
+            if (len(dataSizeStr) >= 10):
+                print(colors.FAIL + "[-] File size too big" + colors.ENDC)
+                return False
+            while len(dataSizeStr) < 10:
+                dataSizeStr = "0" + dataSizeStr
+            if (len(filename) > 25):
+                    print(colors.FAIL + f"File name is too large" + colors.ENDC)
+                    return False
+            FileStr = filename
+            while len(FileStr) < 25:
+                    FileStr = " " + FileStr
+            sendData = FileStr + dataSizeStr + sendData
+            # print(f'Send data is {sendData}')
+            client_connection.send(sendData.encode())
+            file.close()
+            print(colors.OKBLUE + "File Sent to Server" + colors.ENDC)
             return True
         
     except FileNotFoundError:
-        client_connection.sendall(b'0\n')
-        print(f"File not found: {filename}")
+        dataSizeStr = "0000000000"
+        FileStr = filename
+        while len(FileStr) < 25:
+                    FileStr = " " + FileStr
+        sendData = FileStr + dataSizeStr
+        client_connection.send(sendData.encode())
+        print(colors.FAIL + f"File not found: {filename}" + colors.ENDC)
         return False
 
 def main ():

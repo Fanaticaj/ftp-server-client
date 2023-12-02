@@ -73,34 +73,26 @@ def recvAll(sock, numBytes):
 	return recvBuff
 
 def request_get(server_connection, filename):
-    # Send GET command
-    server_connection.sendall(f'GET {filename}'.encode() + b'\n')
-
-    # Receive file size
-    file_size = int(server_connection.recv(1024).decode().strip())
-
-    if file_size == 0:
+    fileName = recvAll(server_connection, 25)
+    fileName = fileName.replace(" ", "")
+    # size of the file
+    fileSizeBuff = recvAll(server_connection, 10)
+    # Get the file size
+    fileSize = int(float(fileSizeBuff))
+    if fileSize == 0:
         print(f"File not found: {filename}")
         return
-
-    # Receive file data
-    received_size = 0
-    file_data = b''
-    while received_size < file_size:
-        chunk = server_connection.recv(1024)
-        if not chunk:
-            break 
-        file_data += chunk
-        received_size += len(chunk)
-
-    if file_data == "File transfer from server failed...":
-        return False
-    
-    with open('./client-files/' + filename, 'wb') as file:
-        file.write(file_data)
-        print("File size is: " + str(file_size))
-        print("New File: " + filename + " was added to the Client")
-        return True
+    print("File name is: ", fileName)
+    newFile = open("client-files/" + fileName, "w")
+    print("The file size is ", fileSize)
+    # Get the file data
+    fileData = recvAll(server_connection, fileSize)
+    newFile.write(fileData)
+    # print("File data is: ", fileData)
+    # print("New file: " + fileName + " was added to the client")
+    newFile.close()
+    print(colors.OKGREEN + "[+] File received successsfully." + colors.ENDC)
+    return True
 
 def validate_input(user_input):
     if(user_input[0] == 'QUIT' or user_input[0] == 'LS' or user_input[0] == 'GET'):
@@ -110,7 +102,8 @@ def validate_input(user_input):
             if(os.path.isfile(path)):
                  return True
             else:
-                 print(f"File not found: {user_input[1]}")
+                 print(colors.FAIL + f"File not found: {user_input[1]}" + colors.ENDC)
+                #  print(f"File not found: {user_input[1]}")
                  return False
     else:
         print(colors.WARNING + "[-] Invalid input" + colors.ENDC)
@@ -123,7 +116,6 @@ def main ():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     print(colors.OKGREEN + "[+] Socket created succesfully." + colors.ENDC)
     IP_Add_Port = args.IP_add_port[0].split(' ')
-    # print('IP_Add_Port:', IP_Add_Port)
     s.connect((IP_Add_Port[0], int(IP_Add_Port[1])))
     print(colors.OKGREEN + "[+] Connected to server successfully..." + colors.ENDC)
 
