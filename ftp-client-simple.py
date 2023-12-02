@@ -4,20 +4,23 @@ import os
 import time
 import threading
 import argparse
+import os.path
 
 # Constants
 CONTROLLED_PORT = 1026
 DATA_PORT = 1025
 FAIL = -1
 BUFFER_SIZE = 45 
+address = '127.0.0.1'
 
 # Gobal mutex
 mutex = threading.Lock()
 
+IP_Port = [str(address), str(CONTROLLED_PORT)]
 # Portnumber stuff
 parser = argparse.ArgumentParser()
-parser.add_argument('port_number', metavar='N', type=int,
-                    nargs=1, default=CONTROLLED_PORT)
+parser.add_argument('IP_add_port', metavar='Expected IP address and port number in \'\'', type=str,
+                    nargs=1, default=IP_Port)
 args = parser.parse_args()
 
 # Makes my strings pretty
@@ -100,8 +103,15 @@ def request_get(server_connection, filename):
         return True
 
 def validate_input(user_input):
-    if(user_input == 'QUIT' or user_input == 'LS' or user_input == 'GET' or user_input == 'PUT'):
+    if(user_input[0] == 'QUIT' or user_input[0] == 'LS' or user_input[0] == 'GET'):
         return True
+    elif(user_input[0] == 'PUT'):
+            path = "client-files/" + user_input[1]
+            if(os.path.isfile(path)):
+                 return True
+            else:
+                 print(f"File not found: {user_input[1]}")
+                 return False
     else:
         print(colors.WARNING + "[-] Invalid input" + colors.ENDC)
         return False
@@ -109,13 +119,12 @@ def validate_input(user_input):
 
 
 def main ():
-    
-    address = '127.0.0.1'
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     print(colors.OKGREEN + "[+] Socket created succesfully." + colors.ENDC)
-
-    s.connect((address, args.port_number[0]))
+    IP_Add_Port = args.IP_add_port[0].split(' ')
+    # print('IP_Add_Port:', IP_Add_Port)
+    s.connect((IP_Add_Port[0], int(IP_Add_Port[1])))
     print(colors.OKGREEN + "[+] Connected to server successfully..." + colors.ENDC)
 
     print(colors.OKBLUE + "Please enter a command..." + colors.ENDC)
@@ -126,7 +135,7 @@ def main ():
         while valid_input != True:
             user_input = input()
             list_user_input = user_input.split(' ')
-            valid_input = validate_input(list_user_input[0])
+            valid_input = validate_input(list_user_input)
 
         s.send(str(user_input).encode())
         time.sleep(1)
@@ -143,52 +152,58 @@ def main ():
 
         if user_input.startswith("PUT"):
             list_user_input = user_input.split(' ')
-            c_data = init_ftp_data_socket((address, DATA_PORT))
-            time.sleep(1) # Wait for server to start up
-
-            with open("client-files/" + list_user_input[1], "r") as f:
-                i = 0
-                data = f.read()
-                fileSize = len(data)
-                print("File size is: ", fileSize)
-                
-                while True:
-                    if (i + BUFFER_SIZE - 35 > fileSize):
-                         sendData = data[i:fileSize]
-                    elif (i + BUFFER_SIZE - 35 < fileSize):
-                        sendData = data[i:(i + BUFFER_SIZE - 35)]
-                    else:
-                        #  print("break 1")
-                         break
-                    # print(f'Send data is {sendData}')
-                    dataSizeStr = str(fileSize)
-                    if (len(dataSizeStr) >= 10):
-                        print(colors.FAIL + "[-] File size too big" + colors.ENDC)
-                        break
-                    while len(dataSizeStr) < 10:
-                        dataSizeStr = "0" + dataSizeStr
-                    FileName = list_user_input[1]
-                    if (len(FileName) > 25):
-                            print("File name is too large")
+            path = "client-files/" + list_user_input[1]
+            if(os.path.isfile(path)):
+                    c_data = init_ftp_data_socket((address, DATA_PORT))
+                    time.sleep(1) # Wait for server to start up
+                    with open("client-files/" + list_user_input[1], "r") as f:
+                        i = 0
+                        data = f.read()
+                        fileSize = len(data)
+                        if fileSize == 0:
+                            print(f"File: {list_user_input[1]} is empty")
                             break
-                    FileStr = FileName
-                    while len(FileStr) < 25:
-                            FileStr = " " + FileStr
-                    if fileSize < i:
-                        # print("break 2")
-                        break
-                    sendData = FileStr + dataSizeStr + sendData
-                    # print(f"Send data is: {sendData}")
-                    if (i + BUFFER_SIZE - 35 > fileSize):
-                        print("Sent the first ", fileSize, "bytes")
-                    else:
-                        print("Sent the first ", i + BUFFER_SIZE - 35, "bytes")
-                    i += BUFFER_SIZE - 35
-                    c_data.send(sendData.encode())
-                    # response = c_data.recv(4).decode()
-                    # print(response)
-                f.close()
-                print(colors.OKBLUE + "File Sent to Server" + colors.ENDC)
+                        print("File size is: ", fileSize)
+                        
+                        while True:
+                            if (i + BUFFER_SIZE - 35 > fileSize):
+                                sendData = data[i:fileSize]
+                            elif (i + BUFFER_SIZE - 35 < fileSize):
+                                sendData = data[i:(i + BUFFER_SIZE - 35)]
+                            else:
+                                #  print("break 1")
+                                break
+                            # print(f'Send data is {sendData}')
+                            dataSizeStr = str(fileSize)
+                            if (len(dataSizeStr) >= 10):
+                                print(colors.FAIL + "[-] File size too big" + colors.ENDC)
+                                break
+                            while len(dataSizeStr) < 10:
+                                dataSizeStr = "0" + dataSizeStr
+                            FileName = list_user_input[1]
+                            if (len(FileName) > 25):
+                                    print("File name is too large")
+                                    break
+                            FileStr = FileName
+                            while len(FileStr) < 25:
+                                    FileStr = " " + FileStr
+                            if fileSize < i:
+                                # print("break 2")
+                                break
+                            sendData = FileStr + dataSizeStr + sendData
+                            # print(f"Send data is: {sendData}")
+                            if (i + BUFFER_SIZE - 35 > fileSize):
+                                print("Sent the first ", fileSize, "bytes")
+                            else:
+                                print("Sent the first ", i + BUFFER_SIZE - 35, "bytes")
+                            i += BUFFER_SIZE - 35
+                            c_data.send(sendData.encode())
+                            # response = c_data.recv(4).decode()
+                            # print(response)
+                        f.close()
+                        print(colors.OKBLUE + "File Sent to Server" + colors.ENDC)
+            else:
+                 print(f"File not found: {list_user_input[1]}")
 
         elif user_input == "QUIT":
              c_data.close()
