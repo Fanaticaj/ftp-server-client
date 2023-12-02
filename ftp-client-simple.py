@@ -19,7 +19,7 @@ mutex = threading.Lock()
 IP_Port = [str(address), str(CONTROLLED_PORT)]
 # Portnumber stuff
 parser = argparse.ArgumentParser()
-parser.add_argument('IP_add_port', metavar='Expected IP address and port number in \'\'', type=str,
+parser.add_argument('IP_add_port', metavar='Expected port number', type=str,
                     nargs=1, default=IP_Port)
 args = parser.parse_args()
 
@@ -116,7 +116,7 @@ def main ():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     print(colors.OKGREEN + "[+] Socket created succesfully." + colors.ENDC)
     IP_Add_Port = args.IP_add_port[0].split(' ')
-    s.connect((IP_Add_Port[0], int(IP_Add_Port[1])))
+    s.connect((address, int(IP_Add_Port[0])))
     print(colors.OKGREEN + "[+] Connected to server successfully..." + colors.ENDC)
 
     print(colors.OKBLUE + "Please enter a command..." + colors.ENDC)
