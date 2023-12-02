@@ -74,6 +74,7 @@ def handle_get(client_connection, filename):
             client_connection.send(sendData.encode())
             file.close()
             print(colors.OKBLUE + "File Sent to Server" + colors.ENDC)
+            time.sleep(3)
             return True
         
     except FileNotFoundError:
