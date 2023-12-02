@@ -57,7 +57,6 @@ This project provides a simple FTP server and client implementation in Python. I
 - The `PUT` command functionality is to upload a file from the client to the server.
 - The client sends the `PUT` command along with the file name and size to the server.
 - It then reads the file and sends its data in chunks to the server.
-- The client waits for an acknowledgment after sending each chunk.
 - Once the file transfer is complete, the client prints a confirmation message.
 
 #### 2. GET
@@ -68,7 +67,8 @@ This project provides a simple FTP server and client implementation in Python. I
 - On completion, the client prints a success message.
 
 #### 3. LS
-- The implementation details for the `LS` command are not provided in the client code snippet. This command would typically request a list of files from the server.
+- The `LS` command requests a list of files from the server.
+- The server then responds with a full list of all the files in its directory.
 
 #### 4. QUIT
 - The `QUIT` command is used to close the connection with the server.
