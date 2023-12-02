@@ -34,13 +34,12 @@ This project provides a simple FTP server and client implementation in Python. I
 **Alternatively**:
    - Open two terminals, each open to the directory that hosts the source code.
    - In the first terminal, run the following command: python3 ftp-server-simple.py <port number>
-   - In the second terminal run the following command: python3 ftp-server-client.py '<IP address> <port number>'
+   - In the second terminal run the following command: python3 ftp-server-client.py <port number>
    - You may then provide the client with the following commands:
          - PUT <filename>
          - GET <filename>
          - LS
          - QUIT
-*Note: the '' in the command for the client is important 
      
 ### Server Implementation
 #### 1. PUT
